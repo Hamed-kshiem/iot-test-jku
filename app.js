@@ -9,6 +9,56 @@ var usersRouter = require('./routes/users');
 
 var app = express();
 
+const { EventHubConsumerClient } = require("@azure/event-hubs");
+const WebSocket = require("ws");
+
+
+//const connectionString = process.env.CONNECTION_STRING;
+const connectionString = "Endpoint=sb://germanywestcentraldedns014.servicebus.windows.net/;SharedAccessKeyName=iothubowner;SharedAccessKey=k0GrmT5kwxIYbUXcSHkYDKz2bb+Z6oDLdAIoTD2cEqk=;EntityPath=iothub-ehub-iot-hub-we-55622020-326b77527c;HostName=iot-hub-web.azure-devices.net;DeviceId=pi-weather"
+const consumerGroup = "$Default"; // Default consumer group
+
+// Initialize WebSocket server
+const wss = new WebSocket.Server({ port: 8080 });
+
+let clients = [];
+
+// Handle new WebSocket connections
+wss.on("connection", (ws) => {
+    console.log("New WebSocket connection");
+    clients.push(ws);
+
+    ws.on("close", () => {
+        console.log("WebSocket connection closed");
+        clients = clients.filter((client) => client !== ws);
+    });
+});
+
+async function main() {
+    console.log("Initializing Event Hub client...");
+    console.log(connectionString)
+    const client = new EventHubConsumerClient(consumerGroup, connectionString);
+
+    console.log("Listening for messages...");
+    client.subscribe({
+        processEvents: async (events, context) => {
+            for (const event of events) {
+                const message = JSON.stringify(event.body);
+                console.log(`Message received: ${message}`);
+
+                // Broadcast message to all connected WebSocket clients
+                clients.forEach((ws) => {
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.send(message);
+                    }
+                });
+            }
+        },
+        processError: async (err, context) => {
+            console.error(`Error: ${err}`);
+        }
+    });
+}
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');

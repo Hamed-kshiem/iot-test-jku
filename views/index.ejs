@@ -7,5 +7,89 @@
   <body>
     <h1><%= title %></h1>
     <p>Welcome to <%= title %></p>
+    <h1>IoT Hub Device Data</h1>
+    <canvas id="dataChart"></canvas>
+
+    <script>
+        const ctx = document.getElementById('dataChart').getContext('2d');
+
+        // Initialize the chart with empty data
+        const dataChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], // Timestamps
+                datasets: [
+                    {
+                        label: 'Temperature (°C)',
+                        data: [], // Temperature values
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        fill: true,
+                        tension: 0.4,
+                    },
+                    {
+                        label: 'Humidity (%)',
+                        data: [], // Humidity values
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        fill: true,
+                        tension: 0.4,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Timestamp',
+                        },
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Values',
+                        },
+                    },
+                },
+            },
+        });
+
+        // Replace this with your WebSocket or API endpoint
+        const socket = new WebSocket('ws://localhost:8080');
+
+        socket.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+
+            // Extract data from the message
+            const timestamp = new Date().toLocaleTimeString();
+            const temperature = message.temperature;
+            const humidity = message.humidity;
+
+            // Update the chart data
+            dataChart.data.labels.push(timestamp); // Add new timestamp
+            dataChart.data.datasets[0].data.push(temperature); // Add temperature
+            dataChart.data.datasets[1].data.push(humidity); // Add humidity
+
+            // Limit the number of data points to 10
+            if (dataChart.data.labels.length > 10) {
+                dataChart.data.labels.shift();
+                dataChart.data.datasets[0].data.shift();
+                dataChart.data.datasets[1].data.shift();
+            }
+
+            // Update the chart display
+            dataChart.update();
+        };
+
+        socket.onerror = (error) => {
+            console.error("WebSocket error:", error);
+        };
+
+        socket.onclose = () => {
+            console.log("WebSocket connection closed.");
+        };
+    </script>
   </body>
 </html>
