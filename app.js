@@ -88,4 +88,8 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+main().catch((err) => {
+    console.error("Error: ", err);
+});
+
 module.exports = app;
