@@ -59,7 +59,7 @@
         });
 
         // Replace this with your WebSocket or API endpoint
-        const socket = new WebSocket('ws://localhost:80');
+        const socket = new WebSocket('wss://localhost:80');
 
         socket.onmessage = (event) => {
             const message = JSON.parse(event.data);
