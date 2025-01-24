@@ -58,16 +58,9 @@
             },
         });
 
-            // Determine the WebSocket protocol based on the current page protocol
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-
-            // Get the hostname and port (if applicable) from the current window location
-            const host = window.location.host;
-
-            // Construct the full WebSocket URL
-            const wsUrl = `${protocol}//${host}/`;
+        
         // Replace this with your WebSocket or API endpoint
-        const socket = new WebSocket(wsUrl);
+        const socket = new WebSocket(`wss://${window.location.host}`);
 
         socket.onmessage = (event) => {
             const message = JSON.parse(event.data);
