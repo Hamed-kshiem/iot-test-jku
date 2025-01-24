@@ -18,7 +18,7 @@ const connectionString = "Endpoint=sb://germanywestcentraldedns014.servicebus.wi
 const consumerGroup = "$Default"; // Default consumer group
 
 // Initialize WebSocket server
-const wss = new WebSocket.Server({ port: 80 });
+const wss = new WebSocket.Server({ noServer: true });
 
 let clients = [];
 
